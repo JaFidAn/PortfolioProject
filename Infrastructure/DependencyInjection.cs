@@ -1,7 +1,5 @@
 using System.Reflection;
 using Application.Repositories;
-using Application.Services.Abstracts;
-using Application.Services.Concretes;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using FluentMigrator.Runner;
@@ -12,6 +10,7 @@ using Persistence.Cqrs.Commands;
 using Persistence.Cqrs.Queries;
 using Application.Common.Interfaces;
 using Infrastructure.Logging;
+using Application.Services.Concretes;
 
 namespace Infrastructure;
 
@@ -30,7 +29,7 @@ public static class DependencyInjection
 
         services.AddScoped(typeof(ILoggerService<>), typeof(LoggerService<>));
 
-        // Auto-register Repositories, Commands, and Queries using Scrutor
+        // Auto-register Repositories, Commands, Queries using Scrutor
         services.Scan(scan => scan
             .FromAssemblies(Assembly.GetAssembly(typeof(ProjectRepository))!)
             .AddClasses(classes => classes.Where(c => c.Name.EndsWith("Repository")))
@@ -49,8 +48,12 @@ public static class DependencyInjection
             .AsImplementedInterfaces()
             .WithScopedLifetime());
 
-        // Register Services Manually
-        services.AddScoped<IProjectService, ProjectService>();
+        // Auto-register Services
+        services.Scan(scan => scan
+            .FromAssemblies(Assembly.GetAssembly(typeof(ProjectService))!)
+            .AddClasses(classes => classes.Where(c => c.Name.EndsWith("Service")))
+            .AsImplementedInterfaces()
+            .WithScopedLifetime());
 
         // Register FluentMigrator for database migrations
         services.AddFluentMigratorCore()
