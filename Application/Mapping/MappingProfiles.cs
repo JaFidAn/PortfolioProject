@@ -1,4 +1,5 @@
 using Application.DTOs.Projects;
+using Application.DTOs.Technologies;
 using AutoMapper;
 using Domain.Entities;
 
@@ -11,5 +12,9 @@ public class MappingProfiles : Profile
         CreateMap<Project, ProjectResponseDto>();
 
         CreateMap<CreateProjectDto, Project>();
+
+        CreateMap<Technology, TechnologyResponseDto>();
+
+        CreateMap<CreateTechnologyDto, Technology>();
     }
 }

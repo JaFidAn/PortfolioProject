@@ -1,3 +1,5 @@
+namespace Application.DTOs.Technologies;
+
 public class TechnologyResponseDto
 {
     public Guid Id { get; set; }
