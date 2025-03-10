@@ -23,6 +23,10 @@ public class TechnologyQuery : ITechnologyQuery
         _unitOfWork = unitOfWork;
     }
 
+    private readonly string _getByNameSql = @"
+        SELECT * FROM Technologies
+        WHERE Name = @Name;";
+
     public async Task<IEnumerable<Technology>> GetAllAsync()
     {
         using var connection = _unitOfWork.GetConnection();
@@ -33,5 +37,10 @@ public class TechnologyQuery : ITechnologyQuery
     {
         using var connection = _unitOfWork.GetConnection();
         return await connection.QuerySingleOrDefaultAsync<Technology>(_getByIdSql, new { Id = id });
+    }
+
+    public async Task<Technology?> GetByNameAsync(string name)
+    {
+        return await _unitOfWork.GetConnection().QuerySingleOrDefaultAsync<Technology>(_getByNameSql, new { Name = name });
     }
 }

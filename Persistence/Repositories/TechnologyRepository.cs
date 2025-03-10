@@ -40,4 +40,9 @@ public class TechnologyRepository : ITechnologyRepository
     {
         await _technologyCommand.DeleteAsync(id);
     }
+
+    public async Task<Technology?> GetByNameAsync(string name)
+    {
+        return await _technologyQuery.GetByNameAsync(name);
+    }
 }

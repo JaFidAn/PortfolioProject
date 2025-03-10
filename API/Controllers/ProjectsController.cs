@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Application.Services.Abstracts;
 using Application.DTOs.Projects;
-using Domain.Entities;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -41,10 +40,12 @@ public class ProjectsController : ControllerBase
     }
 
     [HttpPut]
-    public async Task<IActionResult> UpdateProject([FromBody] Project project)
+    public async Task<IActionResult> UpdateProject([FromBody] UpdateProjectDto dto)
     {
-        var result = await _projectService.UpdateAsync(project);
-        return Ok(result);
+        if (dto == null) return BadRequest("Invalid data");
+
+        var updatedProject = await _projectService.UpdateAsync(dto);
+        return Ok(updatedProject);
     }
 
     [HttpDelete("{id}")]

@@ -9,4 +9,5 @@ public interface ITechnologyRepository
     Task<Guid> AddAsync(Technology technology);
     Task UpdateAsync(Technology technology);
     Task DeleteAsync(Guid id);
+    Task<Technology?> GetByNameAsync(string name);
 }

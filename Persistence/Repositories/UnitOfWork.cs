@@ -9,9 +9,9 @@ public class UnitOfWork : IUnitOfWork
 {
     private readonly IDbConnectionFactory _connectionFactory;
     private readonly string _connectionString;
-    private IDbConnection _connection;
+    private IDbConnection? _connection;
     private bool _disposed;
-    private IDbTransaction _transaction;
+    private IDbTransaction? _transaction;
 
     public UnitOfWork(IConfiguration configuration, IDbConnectionFactory connectionFactory)
     {
@@ -30,17 +30,19 @@ public class UnitOfWork : IUnitOfWork
     public IDbTransaction BeginTransaction()
     {
         EnsureConnectionOpen();
-        _transaction = _connection.BeginTransaction();
+        _transaction = _connection!.BeginTransaction();
+        Console.WriteLine("[UnitOfWork] Transaction started.");
         return _transaction;
     }
 
     public IDbConnection GetConnection()
     {
         EnsureConnectionOpen();
-        return _connection;
+        Console.WriteLine($"[UnitOfWork] Returning database connection. State: {_connection!.State}");
+        return _connection!;
     }
 
-    public IDbTransaction GetTransaction()
+    public IDbTransaction? GetTransaction()
     {
         return _transaction;
     }
@@ -64,7 +66,6 @@ public class UnitOfWork : IUnitOfWork
             _transaction = null;
         }
     }
-
 
     public void Rollback()
     {
@@ -95,6 +96,7 @@ public class UnitOfWork : IUnitOfWork
             {
                 _transaction?.Dispose();
                 CloseConnection();
+                _connection?.Dispose(); // Connection-u tam bağlayırıq
             }
 
             _disposed = true;
@@ -103,22 +105,28 @@ public class UnitOfWork : IUnitOfWork
 
     private void EnsureConnectionOpen()
     {
-        if (_connection == null)
+        if (_connection == null || _connection.State == ConnectionState.Closed)
         {
+            Console.WriteLine("[UnitOfWork] Creating new database connection...");
             _connection = _connectionFactory.CreateConnection(_connectionString);
         }
 
         if (_connection.State != ConnectionState.Open)
         {
+            Console.WriteLine("[UnitOfWork] Opening database connection...");
             _connection.Open();
         }
     }
 
     private void CloseConnection()
     {
-        if (_connection?.State == ConnectionState.Open) _connection.Close();
+        if (_connection?.State == ConnectionState.Open)
+        {
+            Console.WriteLine("[UnitOfWork] Closing database connection...");
+            _connection.Close();
+            _connection = null; // Yenidən connection yaratmaq üçün `null` edirik
+        }
     }
-
 
     ~UnitOfWork()
     {
