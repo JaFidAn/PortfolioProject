@@ -1,7 +1,7 @@
 using System.Data;
 using Application.Repositories;
 using Microsoft.Extensions.Configuration;
-using Dapper;
+using Persistence.TypeHandlers;
 
 namespace Persistence.Repositories;
 
@@ -19,7 +19,7 @@ public class UnitOfWork : IUnitOfWork
             ?? throw new InvalidOperationException("Connection string 'SqlServerConnection' is missing in appsettings.json.");
 
         _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
-        AddTypeHandlers();
+        DapperTypeHandlerRegister.RegisterHandlers();
     }
 
     public IDbConnection GetMasterConnection()
@@ -31,14 +31,12 @@ public class UnitOfWork : IUnitOfWork
     {
         EnsureConnectionOpen();
         _transaction = _connection!.BeginTransaction();
-        Console.WriteLine("[UnitOfWork] Transaction started.");
         return _transaction;
     }
 
     public IDbConnection GetConnection()
     {
         EnsureConnectionOpen();
-        Console.WriteLine($"[UnitOfWork] Returning database connection. State: {_connection!.State}");
         return _connection!;
     }
 
@@ -82,12 +80,6 @@ public class UnitOfWork : IUnitOfWork
         GC.SuppressFinalize(this);
     }
 
-    private void AddTypeHandlers()
-    {
-        SqlMapper.AddTypeHandler(new DateTimeHandler());
-        SqlMapper.AddTypeHandler(new SqlTimeOnlyTypeHandler());
-    }
-
     protected virtual void Dispose(bool disposing)
     {
         if (!_disposed)
@@ -96,7 +88,7 @@ public class UnitOfWork : IUnitOfWork
             {
                 _transaction?.Dispose();
                 CloseConnection();
-                _connection?.Dispose(); // Connection-u tam bağlayırıq
+                _connection?.Dispose();
             }
 
             _disposed = true;
@@ -107,13 +99,11 @@ public class UnitOfWork : IUnitOfWork
     {
         if (_connection == null || _connection.State == ConnectionState.Closed)
         {
-            Console.WriteLine("[UnitOfWork] Creating new database connection...");
             _connection = _connectionFactory.CreateConnection(_connectionString);
         }
 
         if (_connection.State != ConnectionState.Open)
         {
-            Console.WriteLine("[UnitOfWork] Opening database connection...");
             _connection.Open();
         }
     }
@@ -122,42 +112,13 @@ public class UnitOfWork : IUnitOfWork
     {
         if (_connection?.State == ConnectionState.Open)
         {
-            Console.WriteLine("[UnitOfWork] Closing database connection...");
             _connection.Close();
-            _connection = null; // Yenidən connection yaratmaq üçün `null` edirik
+            _connection = null;
         }
     }
 
     ~UnitOfWork()
     {
         Dispose(false);
-    }
-}
-
-public class DateTimeHandler : SqlMapper.TypeHandler<DateTime>
-{
-    public override void SetValue(IDbDataParameter parameter, DateTime value)
-    {
-        parameter.Value = TimeZoneInfo.ConvertTimeToUtc(value);
-    }
-
-    public override DateTime Parse(object value)
-    {
-        var timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Azerbaijan Standard Time");
-        var utcDateTime = DateTime.SpecifyKind((DateTime)value, DateTimeKind.Utc);
-        return TimeZoneInfo.ConvertTime(utcDateTime, timeZoneInfo);
-    }
-}
-
-public class SqlTimeOnlyTypeHandler : SqlMapper.TypeHandler<TimeOnly>
-{
-    public override void SetValue(IDbDataParameter parameter, TimeOnly time)
-    {
-        parameter.Value = time.ToString();
-    }
-
-    public override TimeOnly Parse(object value)
-    {
-        return TimeOnly.FromTimeSpan((TimeSpan)value);
     }
 }
