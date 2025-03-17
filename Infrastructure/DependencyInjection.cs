@@ -21,15 +21,12 @@ public static class DependencyInjection
         string connectionString = configuration.GetConnectionString("SqlServerConnection")
             ?? throw new InvalidOperationException("Connection string 'SqlConnectionString' is missing in appsettings.json");
 
-        // Register Connection Factory
-        services.AddSingleton<IDbConnectionFactory, SqlConnectionFactory>();
+        services.AddScoped<IDbConnectionFactory, SqlConnectionFactory>();
 
-        // Register Unit of Work
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddScoped(typeof(ILoggerService<>), typeof(LoggerService<>));
 
-        // Auto-register Repositories, Commands, Queries using Scrutor
         services.Scan(scan => scan
             .FromAssemblies(Assembly.GetAssembly(typeof(ProjectRepository))!)
             .AddClasses(classes => classes.Where(c => c.Name.EndsWith("Repository")))
@@ -48,21 +45,18 @@ public static class DependencyInjection
             .AsImplementedInterfaces()
             .WithScopedLifetime());
 
-        // Auto-register Services
         services.Scan(scan => scan
             .FromAssemblies(Assembly.GetAssembly(typeof(ProjectService))!)
             .AddClasses(classes => classes.Where(c => c.Name.EndsWith("Service")))
             .AsImplementedInterfaces()
             .WithScopedLifetime());
 
-        // Register FluentMigrator for database migrations
         services.AddFluentMigratorCore()
             .ConfigureRunner(rb => rb
                 .AddSqlServer()
                 .WithGlobalConnectionString(connectionString)
                 .ScanIn(typeof(_20250306135801_CreateProjectsTable).Assembly).For.Migrations());
 
-        // Register AutoMapper
         services.AddAutoMapper(typeof(MappingProfiles));
 
         return services;
