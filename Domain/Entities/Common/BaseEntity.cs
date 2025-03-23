@@ -2,7 +2,7 @@ namespace Domain.Entities.Common;
 
 public abstract class BaseEntity
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public string Id { get; set; } = Guid.NewGuid().ToString();
     public bool IsDeleted { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
