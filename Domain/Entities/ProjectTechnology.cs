@@ -2,6 +2,9 @@ namespace Domain.Entities;
 
 public class ProjectTechnology
 {
-    public Guid ProjectId { get; set; }
-    public Guid TechnologyId { get; set; }
+    public string ProjectId { get; set; } = null!;
+    public Project Project { get; set; } = null!;
+
+    public string TechnologyId { get; set; } = null!;
+    public Technology Technology { get; set; } = null!;
 }

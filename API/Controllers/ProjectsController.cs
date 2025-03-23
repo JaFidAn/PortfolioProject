@@ -1,57 +1,40 @@
+using Application.Core;
+using Application.Features.Projects.Commands;
+using Application.Features.Projects.DTOs;
+using Application.Features.Projects.Queries;
 using Microsoft.AspNetCore.Mvc;
-using Application.Services.Abstracts;
-using Application.DTOs.Projects;
 
-[Route("api/[controller]")]
-[ApiController]
-public class ProjectsController : ControllerBase
+namespace API.Controllers;
+
+public class ProjectsController : BaseApiController
 {
-    private readonly IProjectService _projectService;
-
-    public ProjectsController(IProjectService projectService)
-    {
-        _projectService = projectService;
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> CreateProject([FromBody] CreateProjectDto dto)
-    {
-        if (dto == null) return BadRequest("Invalid data");
-
-        var projectId = await _projectService.CreateAsync(dto);
-        return CreatedAtAction(nameof(GetProjectById), new { id = projectId }, new { id = projectId });
-    }
-
     [HttpGet]
-    public async Task<IActionResult> GetAllProjects()
+    public async Task<ActionResult<PagedResult<ProjectDto>>> GetAll([FromQuery] PaginationParams paginationParams)
     {
-        var projects = await _projectService.GetAllAsync();
-        return Ok(projects);
+        return await Mediator.Send(new GetProjectList.Query { Params = paginationParams });
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetProjectById(Guid id)
+    public async Task<ActionResult<ProjectDto>> GetDetail(string id)
     {
-        var project = await _projectService.GetByIdAsync(id);
-        if (project == null)
-            return NotFound($"Project with ID {id} not found");
+        return HandleResult(await Mediator.Send(new GetProjectDetails.Query { Id = id }));
+    }
 
-        return Ok(project);
+    [HttpPost]
+    public async Task<ActionResult<string>> Create(CreateProjectDto projectDto)
+    {
+        return HandleResult(await Mediator.Send(new CreateProject.Command { ProjectDto = projectDto }));
     }
 
     [HttpPut]
-    public async Task<IActionResult> UpdateProject([FromBody] UpdateProjectDto dto)
+    public async Task<ActionResult> Edit(EditProjectDto projectDto)
     {
-        if (dto == null) return BadRequest("Invalid data");
-
-        var updatedProject = await _projectService.UpdateAsync(dto);
-        return Ok(updatedProject);
+        return HandleResult(await Mediator.Send(new EditProject.Command { ProjectDto = projectDto }));
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteProject(Guid id)
+    public async Task<ActionResult> Delete(string id)
     {
-        await _projectService.DeleteAsync(id);
-        return NoContent();
+        return HandleResult(await Mediator.Send(new DeleteProject.Command { Id = id }));
     }
 }
