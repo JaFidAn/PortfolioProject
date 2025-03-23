@@ -7,5 +7,5 @@ public class Project : BaseEntity
     public required string Title { get; set; }
     public required string Description { get; set; }
     public required string Link { get; set; }
-    public List<string> Technologies { get; set; } = new();
+    public ICollection<ProjectTechnology> ProjectTechnologies { get; set; } = new List<ProjectTechnology>();
 }

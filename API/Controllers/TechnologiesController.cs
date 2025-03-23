@@ -1,56 +1,40 @@
+using Application.Core;
+using Application.Features.Technologies.Commands;
+using Application.Features.Technologies.DTOs;
+using Application.Features.Technologies.Queries;
 using Microsoft.AspNetCore.Mvc;
-using Application.Services.Abstracts;
-using Application.DTOs.Technologies;
-using Domain.Entities;
 
-[Route("api/[controller]")]
-[ApiController]
-public class TechnologiesController : ControllerBase
+namespace API.Controllers;
+
+public class TechnologiesController : BaseApiController
 {
-    private readonly ITechnologyService _technologyService;
-
-    public TechnologiesController(ITechnologyService technologyService)
-    {
-        _technologyService = technologyService;
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> CreateTechnology([FromBody] CreateTechnologyDto dto)
-    {
-        if (dto == null) return BadRequest("Invalid data");
-
-        var technologyId = await _technologyService.CreateAsync(dto);
-        return CreatedAtAction(nameof(GetTechnologyById), new { id = technologyId }, new { id = technologyId });
-    }
-
     [HttpGet]
-    public async Task<IActionResult> GetAllTechnologies()
+    public async Task<ActionResult<PagedResult<TechnologyDto>>> GetAll([FromQuery] PaginationParams paginationParams)
     {
-        var technologies = await _technologyService.GetAllAsync();
-        return Ok(technologies);
+        return await Mediator.Send(new GetTechnologyList.Query { Params = paginationParams });
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetTechnologyById(Guid id)
+    public async Task<ActionResult<TechnologyDto>> GetDetail(string id)
     {
-        var technology = await _technologyService.GetByIdAsync(id);
-        if (technology == null)
-            return NotFound($"Technology with ID {id} not found");
+        return HandleResult(await Mediator.Send(new GetTechnologyDetails.Query { Id = id }));
+    }
 
-        return Ok(technology);
+    [HttpPost]
+    public async Task<ActionResult<string>> Create(CreateTechnologyDto technologyDto)
+    {
+        return HandleResult(await Mediator.Send(new CreateTechnology.Command { TechnologyDto = technologyDto }));
     }
 
     [HttpPut]
-    public async Task<IActionResult> UpdateTechnology([FromBody] Technology technology)
+    public async Task<ActionResult> Edit(EditTechnologyDto technologyDto)
     {
-        var result = await _technologyService.UpdateAsync(technology);
-        return Ok(result);
+        return HandleResult(await Mediator.Send(new EditTechnology.Command { TechnologyDto = technologyDto }));
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteTechnology(Guid id)
+    public async Task<ActionResult> Delete(string id)
     {
-        await _technologyService.DeleteAsync(id);
-        return NoContent();
+        return HandleResult(await Mediator.Send(new DeleteTechnology.Command { Id = id }));
     }
 }
