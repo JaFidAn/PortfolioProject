@@ -1,5 +1,6 @@
 using Application;
 using Persistence;
+using Infrastructure;
 using API.Middlewares;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -9,16 +10,16 @@ using Persistence.Contexts.Data;
 using Microsoft.EntityFrameworkCore;
 using API.Extensions;
 using System.Text.Json.Serialization;
-using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Modular Swagger
 builder.Services.AddSwaggerDocumentation();
 
-// Register Application & AddPersistence
+// Register Application, AddPersistence & Infrastructure
 builder.Services.AddApplication();
 builder.Services.AddPersistence(builder.Configuration);
+builder.Services.AddInfrastructure(builder.Configuration);
 
 // Register FluentValidation 
 builder.Services.AddValidatorsFromAssemblyContaining<CreateProjectValidator>();
