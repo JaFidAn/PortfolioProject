@@ -15,6 +15,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Technology> Technologies => Set<Technology>();
     public DbSet<ProjectTechnology> ProjectTechnologies => Set<ProjectTechnology>();
     public DbSet<Skill> Skills => Set<Skill>();
+    public DbSet<Achievement> Achievements => Set<Achievement>();
+    public DbSet<Contact> Contacts => Set<Contact>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
