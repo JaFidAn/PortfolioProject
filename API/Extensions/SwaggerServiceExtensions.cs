@@ -16,6 +16,31 @@ public static class SwaggerServiceExtensions
                 Version = "v1",
                 Description = "Portfolio management endpoints."
             });
+
+            var jwtSecurityScheme = new OpenApiSecurityScheme
+            {
+                Name = "Authorization",
+                Description = "Enter 'Bearer {your token}'",
+                In = ParameterLocation.Header,
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                Reference = new OpenApiReference
+                {
+                    Id = "Bearer",
+                    Type = ReferenceType.SecurityScheme
+                }
+            };
+
+            c.AddSecurityDefinition("Bearer", jwtSecurityScheme);
+
+            c.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    jwtSecurityScheme,
+                    new string[] { }
+                }
+            });
         });
 
         return services;
