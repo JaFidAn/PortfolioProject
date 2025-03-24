@@ -1,4 +1,5 @@
 using Application.Features.Achievements.DTOs;
+using Application.Features.Auth.DTOs;
 using Application.Features.Contacts.DTOs;
 using Application.Features.Projects.DTOs;
 using Application.Features.Skills.DTOs;
@@ -35,5 +36,10 @@ public class MappingProfile : Profile
 
         CreateMap<CreateContactDto, Contact>();
         CreateMap<Contact, ContactDto>();
+
+        CreateMap<RegisterDto, AppUser>()
+            .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName))
+            .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+            .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName));
     }
 }

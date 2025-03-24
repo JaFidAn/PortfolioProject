@@ -16,46 +16,31 @@ namespace API.Controllers
 
         protected ActionResult HandleResult<T>(Result<T> result)
         {
-            // Not Found
-            if (!result.IsSuccess && result.Code == 404)
+            if (!result.IsSuccess)
             {
-                return NotFound(new
-                {
-                    result.Error,
-                    result.Code
-                });
+                // Not Found
+                if (result.Code == 404)
+                    return NotFound(new { message = result.Error, code = result.Code });
+
+                // General Bad Request
+                return BadRequest(new { message = result.Error, code = result.Code });
             }
 
             var type = typeof(T);
 
-            // Success with only message (e.g., Result<Unit>)
-            if (result.IsSuccess && type == typeof(Unit))
-            {
+            // Success (Unit) with message
+            if (type == typeof(Unit))
                 return Ok(new { message = result.Message });
-            }
 
-            // Success with non-null value
-            if (result.IsSuccess && result.Value is not null)
+            // Success with simple types (id)
+            if (type == typeof(string) || type == typeof(Guid) || type == typeof(int))
+                return Ok(new { id = result.Value, message = result.Message });
+
+            // For complex objects (DTOs), return data and message explicitly
+            return Ok(new
             {
-                // For string / int / Guid returns: id + message
-                if (type == typeof(string) || type == typeof(Guid) || type == typeof(int))
-                {
-                    return Ok(new
-                    {
-                        id = result.Value,
-                        message = result.Message
-                    });
-                }
-
-                // Otherwise, return just the object
-                return Ok(result.Value);
-            }
-
-            // General Bad Request
-            return BadRequest(new
-            {
-                result.Error,
-                result.Code
+                data = result.Value,
+                message = result.Message
             });
         }
     }
