@@ -1,3 +1,5 @@
+using Application.Features.Achievements.DTOs;
+using Application.Features.Contacts.DTOs;
 using Application.Features.Projects.DTOs;
 using Application.Features.Skills.DTOs;
 using Application.Features.Technologies.DTOs;
@@ -26,5 +28,12 @@ public class MappingProfile : Profile
         CreateMap<CreateSkillDto, Skill>();
         CreateMap<EditSkillDto, Skill>();
         CreateMap<Skill, SkillDto>();
+
+        CreateMap<CreateAchievementDto, Achievement>();
+        CreateMap<EditAchievementDto, Achievement>();
+        CreateMap<Achievement, AchievementDto>();
+
+        CreateMap<CreateContactDto, Contact>();
+        CreateMap<Contact, ContactDto>();
     }
 }

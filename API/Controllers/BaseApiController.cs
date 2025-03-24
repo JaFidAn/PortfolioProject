@@ -12,10 +12,11 @@ namespace API.Controllers
 
         protected IMediator Mediator => _mediator
              ??= HttpContext.RequestServices.GetService<IMediator>()
-             ?? throw new InvalidOperationException("IMediator service is unavaliable");
+             ?? throw new InvalidOperationException("IMediator service is unavailable");
 
         protected ActionResult HandleResult<T>(Result<T> result)
         {
+            // Not Found
             if (!result.IsSuccess && result.Code == 404)
             {
                 return NotFound(new
@@ -25,9 +26,18 @@ namespace API.Controllers
                 });
             }
 
-            if (result.IsSuccess)
+            var type = typeof(T);
+
+            // Success with only message (e.g., Result<Unit>)
+            if (result.IsSuccess && type == typeof(Unit))
             {
-                var type = typeof(T);
+                return Ok(new { message = result.Message });
+            }
+
+            // Success with non-null value
+            if (result.IsSuccess && result.Value is not null)
+            {
+                // For string / int / Guid returns: id + message
                 if (type == typeof(string) || type == typeof(Guid) || type == typeof(int))
                 {
                     return Ok(new
@@ -37,17 +47,11 @@ namespace API.Controllers
                     });
                 }
 
-                if (type == typeof(Unit))
-                {
-                    return Ok(new
-                    {
-                        message = result.Message
-                    });
-                }
-
+                // Otherwise, return just the object
                 return Ok(result.Value);
             }
 
+            // General Bad Request
             return BadRequest(new
             {
                 result.Error,
